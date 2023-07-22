@@ -18,8 +18,8 @@ public class MatchController {
     private MatchService matchService;
 
 
-    @GetMapping("/rey/test")
-    public void getTest() throws Exception {
-        matchService.getDotaMatch();
+    @GetMapping("/rey/macth")
+    public String getMacth(String type) throws Exception {
+        return matchService.getDotaMatch(type);
     }
 }

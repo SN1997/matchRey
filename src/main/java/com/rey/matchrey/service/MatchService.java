@@ -33,11 +33,26 @@ public class MatchService {
      * @author SN
      * @date 2023/07/22
      */
-    public void getDotaMatch() throws Exception {
+    public String getDotaMatch(String type) throws Exception {
+        String isType="";
+        if (DOTA2.equals(type)){
+            isType = DOTA2;
+        }else if (LOL.equals(type)){
+            isType = LOL;
+        }else if (CSGO.equals(type)){
+            isType = CSGO;
+        }
+        String dateStr = DateUtil.today();
+        Date date =  DateUtil.parse(dateStr, "yyyy-MM-dd");
+        Date minDate =   DateUtil.offsetDay(date,1);
+        Date maxDate =  DateUtil.offsetDay(date,2);
+        String mixTime = (minDate.getTime()/1000)+"000";
+        String maxTime = (maxDate.getTime()/1000)+"000";
 
-        String data= HttpUtil.get("https://api.vpgame.com/schedule/schedule/unstart_schedule?gameIp="+DOTA2
-                                    +"&maxGameTime="+ (DateUtil.tomorrow().getTime()/1000)+"000"
-                                    +"&minGameTime="+ (new Date().getTime()/1000)+"000");
+
+        String data= HttpUtil.get("https://api.vpgame.com/schedule/schedule/unstart_schedule?gameIp="+isType
+                                    +"&maxGameTime="+ maxTime
+                                    +"&minGameTime="+ mixTime);
         //赛事名称
         String leagueName = null;
         //赛事logo
@@ -45,9 +60,9 @@ public class MatchService {
         //赛事MD格式
         String leagueMd;
         Object[] append = null;
-        Object[][] objs = new Object[0][];
-
+        int num = 0;
         List<Object> dataList = (List<Object>) JSONUtil.parseObj(JSONUtil.parseObj(data).get("data")).get("all_list");
+        Object[][] objs = new Object[dataList.size()][];
         for (Object obj : dataList){
             MatchDataDTO matchData = JSONObject.parseObject(JSON.toJSONString(obj), MatchDataDTO.class);
             String dateTime = matchData.getGame_time().substring(0,matchData.getGame_time().length()-3);
@@ -57,13 +72,13 @@ public class MatchService {
             String bLog = this.teamLogo(bTeam.getLogo(),bTeam.getName());
             leagueName = matchData.getLeague_name();
             leagueLogo = matchData.getLeague_logo();
-            Object[] objects = new Object[]{ DateUtil.date(Long.parseLong(dateTime)*1000),aLog+aTeam.getName(), bLog+bTeam.getName(), "BO"+matchData.getRound()};
-            //TODO 数据添加问题
-            append=  ArrayUtil.append(objs, objects);
+            objs[num] = new Object[]{ DateUtil.date(Long.parseLong(dateTime)*1000),aLog+aTeam.getName(), bLog+bTeam.getName(), "BO"+matchData.getRound()};
+            num++;
         }
         leagueMd = this.logo(leagueLogo,leagueName);
-        String s = this.MDW(leagueMd,leagueName, new Object[][]{append});
+        String s = this.MDW(leagueMd,leagueName, objs);
         System.out.println(s);
+        return s;
 
     }
 
