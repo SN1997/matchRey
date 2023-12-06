@@ -22,4 +22,6 @@ public class MatchController {
     public String getMacth(String type) throws Exception {
         return matchService.getDotaMatch(type);
     }
+
+
 }
